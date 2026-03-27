@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedCare - Gestão de Medicamentos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .page-transition { transition: opacity 0.2s ease-in-out; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .pill-active { background-color: #3b82f6; color: white; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+    <div id="auth-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-600 to-indigo-700">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-800">MedCare</h1>
+                <p class="text-slate-500">Sua saúde em dia, sempre.</p>
+            </div>
+
+            <div id="login-form">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
+                        <input type="email" id="login-email" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="exemplo@email.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Senha</label>
+                        <input type="password" id="login-pass" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="••••••••">
+                    </div>
+                    <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition transform active:scale-[0.98]">Entrar</button>
+                </div>
+                <p class="mt-6 text-center text-sm text-slate-600">
+                    Não tem conta? <button onclick="toggleAuthForms()" class="text-blue-600 font-semibold hover:underline">Cadastre-se</button>
+                </p>
+            </div>
+
+            <div id="register-form" class="hidden">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome Completo</label>
+                        <input type="text" id="reg-name" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Seu nome">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
+                        <input type="email" id="reg-email" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="exemplo@email.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Senha</label>
+                        <input type="password" id="reg-pass" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="••••••••">
+                    </div>
+                    <button onclick="handleRegister()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition transform active:scale-[0.98]">Criar Conta</button>
+                </div>
+                <p class="mt-6 text-center text-sm text-slate-600">
+                    Já tem conta? <button onclick="toggleAuthForms()" class="text-blue-600 font-semibold hover:underline">Fazer Login</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-content" class="hidden flex flex-col md:flex-row min-h-screen">
+        <aside class="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col">
+            <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-lg text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>
+                </div>
+                <span class="text-xl font-bold text-slate-800">MedCare</span>
+            </div>
+            
+            <nav class="flex-1 p-4 space-y-2">
+                <button onclick="navigate('dashboard')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-slate-600 hover:bg-slate-50 pill-active" data-page="dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                    Painel
+                </button>
+                <button onclick="navigate('meds')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-slate-600 hover:bg-slate-50" data-page="meds">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h1a.3.3 0 1 0 .2-.3Z"/><path d="M10 13v9"/><path d="M14 13v9"/><path d="M18 13v9"/><path d="M22 13v9"/><path d="M2 13h20"/><path d="M2 17h20"/><path d="M2 21h20"/></svg>
+                    Medicamentos
+                </button>
+                <button onclick="navigate('calendar')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-slate-600 hover:bg-slate-50" data-page="calendar">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Calendário
+                </button>
+                <button onclick="navigate('reports')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-slate-600 hover:bg-slate-50" data-page="reports">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                    Relatórios
+                </button>
+            </nav>
+
+            <div class="p-4 mt-auto border-t border-slate-100">
+                <button onclick="navigate('profile')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition">
+                    <div class="w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
+                        <img id="user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User">
+                    </div>
+                    <div class="text-left">
+                        <p class="text-xs font-bold truncate" id="user-display-name">Usuário</p>
+                        <p class="text-[10px] text-slate-500">Ver perfil</p>
+                    </div>
+                </button>
+                <button onclick="logout()" class="w-full mt-2 flex items-center gap-3 px-4 py-2 text-red-500 text-sm hover:bg-red-50 rounded-lg transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sair
+                </button>
+            </div>
+        </aside>
+
+        <main id="main-content" class="flex-1 p-4 md:p-8 overflow-y-auto max-h-screen custom-scrollbar page-transition">
+            <!-- As visualizações serão injetadas aqui -->
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Alertas Toast -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[100] space-y-2"></div>
+
+    <script>
+        // --- Estado do App ---
+        let currentUser = null;
+        let medications = [
+            { id: 1, name: 'Paracetamol', dosage: '500mg', time: '08:00', frequency: '8/8h', status: 'pendente', color: 'bg-blue-500', interactionAlert: false, prescriptionExpires: '2023-12-30' },
+            { id: 2, name: 'Amoxicilina', dosage: '875mg', time: '12:00', frequency: '12/12h', status: 'tomado', color: 'bg-emerald-500', interactionAlert: true, prescriptionExpires: '2023-11-15' }
+        ];
+        let history = [
+            { date: '2023-10-25', med: 'Paracetamol', time: '08:15', status: 'Tomado' },
+            { date: '2023-10-25', med: 'Amoxicilina', time: '12:05', status: 'Tomado' }
+        ];
+
+        // --- Inicialização ---
+        window.onload = () => {
+            checkAuth();
+        };
+
+        function checkAuth() {
+            if (!currentUser) {
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('app-content').classList.add('hidden');
+            } else {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                navigate('dashboard');
+            }
+        }
+
+        function toggleAuthForms() {
+            document.getElementById('login-form').classList.toggle('hidden');
+            document.getElementById('register-form').classList.toggle('hidden');
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            if (email) {
+                currentUser = { name: email.split('@')[0], email: email };
+                document.getElementById('user-display-name').innerText = currentUser.name;
+                showToast('Login realizado com sucesso!', 'success');
+                checkAuth();
+            } else {
+                showToast('Preencha os campos corretamente', 'error');
+            }
+        }
+
+        function handleRegister() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            if (name && email) {
+                currentUser = { name, email };
+                document.getElementById('user-display-name').innerText = name;
+                showToast('Conta criada com sucesso!', 'success');
+                checkAuth();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            checkAuth();
+        }
+
+        // --- Roteamento ---
+        function navigate(page) {
+            const content = document.getElementById('main-content');
+            content.style.opacity = '0';
+            
+            // Atualizar links ativos
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('pill-active');
+                if (link.dataset.page === page) link.classList.add('pill-active');
+            });
+
+            setTimeout(() => {
+                switch(page) {
+                    case 'dashboard': renderDashboard(); break;
+                    case 'meds': renderMeds(); break;
+                    case 'calendar': renderCalendar(); break;
+                    case 'reports': renderReports(); break;
+                    case 'profile': renderProfile(); break;
+                }
+                content.style.opacity = '1';
+            }, 200);
+        }
+
+        // --- Views ---
+        function renderDashboard() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+            
+            document.getElementById('main-content').innerHTML = `
+                <div class="space-y-8">
+                    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-800 capitalize">Olá, ${currentUser.name}!</h2>
+                            <p class="text-slate-500">${dateStr}</p>
+                        </div>
+                        <button onclick="openModal('addMed')" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Novo Medicamento
+                        </button>
+                    </header>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <p class="text-slate-500 text-sm mb-1">Próxima Dose</p>
+                            <h3 class="text-2xl font-bold text-slate-800">12:30</h3>
+                            <p class="text-blue-600 font-medium">Paracetamol</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <p class="text-slate-500 text-sm mb-1">Aderência Semanal</p>
+                            <h3 class="text-2xl font-bold text-slate-800">92%</h3>
+                            <div class="w-full bg-slate-100 h-2 rounded-full mt-2">
+                                <div class="bg-emerald-500 h-full rounded-full" style="width: 92%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <p class="text-slate-500 text-sm mb-1">Receitas Próximas do Vencimento</p>
+                            <h3 class="text-2xl font-bold text-red-500">1</h3>
+                            <p class="text-slate-400 text-xs mt-1 underline cursor-pointer">Ver detalhes</p>
+                        </div>
+                    </div>
+
+                    <section>
+                        <h3 class="text-xl font-bold text-slate-800 mb-4">Medicações de Hoje</h3>
+                        <div class="space-y-4">
+                            ${medications.map(m => `
+                                <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center justify-between group hover:shadow-md transition">
+                                    <div class="flex items-center gap-4">
+                                        <div class="${m.color} w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800">${m.name}</h4>
+                                            <p class="text-sm text-slate-500">${m.dosage} • ${m.frequency} • <span class="font-medium text-slate-700">${m.time}</span></p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        ${m.status === 'tomado' 
+                                            ? '<span class="text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full text-xs font-bold">Tomado</span>'
+                                            : `<button onclick="markAsTaken(${m.id})" class="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition">Confirmar</button>`
+                                        }
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+                </div>
+            `;
+        }
+
+        function renderMeds() {
+            document.getElementById('main-content').innerHTML = `
+                <div class="space-y-8">
+                    <header class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-800">Seu Armário</h2>
+                            <p class="text-slate-500">Gerencie seu estoque de medicamentos</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openModal('scanner')" class="bg-slate-800 hover:bg-slate-900 text-white p-3 rounded-xl transition shadow-lg group">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 group-hover:scale-110 transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+                            </button>
+                            <button onclick="openModal('addMed')" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition">Adicionar</button>
+                        </div>
+                    </header>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        ${medications.map(m => `
+                            <div class="bg-white rounded-2xl border border-slate-100 p-6 flex flex-col justify-between hover:border-blue-200 transition relative overflow-hidden">
+                                ${m.interactionAlert ? '<div class="absolute top-0 right-0 bg-amber-500 text-white px-3 py-1 text-[10px] font-bold uppercase tracking-wider">Aviso de Interação</div>' : ''}
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="${m.color} w-14 h-14 rounded-2xl flex items-center justify-center text-white">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xl font-bold text-slate-800">${m.name}</h4>
+                                            <p class="text-slate-500">${m.dosage} - ${m.frequency}</p>
+                                        </div>
+                                    </div>
+                                    <button class="text-slate-300 hover:text-slate-600"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
+                                    <div>
+                                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Receita Vence em</p>
+                                        <p class="text-sm font-semibold ${new Date(m.prescriptionExpires) < new Date() ? 'text-red-500' : 'text-slate-700'}">${m.prescriptionExpires}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Ações</p>
+                                        <div class="flex justify-end gap-2 mt-1">
+                                            <button class="text-blue-600 text-xs font-bold hover:underline">Renovar</button>
+                                            <button class="text-slate-400 text-xs font-bold hover:text-red-500" onclick="deleteMed(${m.id})">Excluir</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCalendar() {
+            document.getElementById('main-content').innerHTML = `
+                <div class="space-y-8">
+                    <header>
+                        <h2 class="text-3xl font-bold text-slate-800">Calendário</h2>
+                        <p class="text-slate-500">Outubro 2023</p>
+                    </header>
+
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <div class="grid grid-cols-7 gap-2 mb-4">
+                            ${['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => `<div class="text-center text-xs font-bold text-slate-400 uppercase">${d}</div>`).join('')}
+                        </div>
+                        <div class="grid grid-cols-7 gap-2">
+                            ${Array.from({length: 31}, (_, i) => {
+                                const day = i + 1;
+                                const isToday = day === 25;
+                                const hasMeds = [2, 5, 10, 15, 20, 25, 28].includes(day);
+                                return `
+                                    <div class="aspect-square flex flex-col items-center justify-center rounded-2xl transition cursor-pointer hover:bg-slate-50 ${isToday ? 'bg-blue-600 text-white font-bold' : 'text-slate-600'}">
+                                        <span>${day}</span>
+                                        ${hasMeds && !isToday ? '<div class="w-1 h-1 bg-blue-500 rounded-full mt-1"></div>' : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-800 rounded-2xl p-6 text-white">
+                        <h4 class="font-bold mb-4 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Próximas 24 horas
+                        </h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between border-l-2 border-blue-400 pl-4">
+                                <div>
+                                    <p class="text-sm font-bold">Paracetamol</p>
+                                    <p class="text-xs text-slate-400">Dose das 20:00</p>
+                                </div>
+                                <span class="text-xs bg-slate-700 px-2 py-1 rounded">Faltam 4h</span>
+                            </div>
+                            <div class="flex items-center justify-between border-l-2 border-slate-600 pl-4">
+                                <div>
+                                    <p class="text-sm font-bold">Amoxicilina</p>
+                                    <p class="text-xs text-slate-400">Dose das 00:00</p>
+                                </div>
+                                <span class="text-xs bg-slate-700 px-2 py-1 rounded">Faltam 8h</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderReports() {
+            document.getElementById('main-content').innerHTML = `
+                <div class="space-y-8">
+                    <header class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-800">Relatórios</h2>
+                            <p class="text-slate-500">Seu progresso e aderência</p>
+                        </div>
+                        <button onclick="downloadReport()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-semibold transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Baixar Relatório
+                        </button>
+                    </header>
+
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                        <h4 class="text-lg font-bold text-slate-800 mb-6">Aderência ao Tratamento (30 dias)</h4>
+                        <canvas id="adherenceChart" class="w-full" height="300"></canvas>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-3xl border border-slate-100">
+                            <h4 class="font-bold text-slate-800 mb-4">Histórico Recente</h4>
+                            <div class="space-y-3">
+                                ${history.map(h => `
+                                    <div class="flex items-center justify-between text-sm py-2 border-b border-slate-50">
+                                        <div>
+                                            <p class="font-semibold text-slate-700">${h.med}</p>
+                                            <p class="text-xs text-slate-400">${h.date} às ${h.time}</p>
+                                        </div>
+                                        <span class="text-emerald-600 font-bold">${h.status}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="bg-blue-600 p-6 rounded-3xl text-white">
+                            <h4 class="font-bold mb-2">Dica de Saúde</h4>
+                            <p class="text-blue-100 text-sm leading-relaxed">Manter a constância no horário das medicações aumenta a eficácia do tratamento em até 40%. Tente tomar sempre junto com uma atividade rotineira.</p>
+                            <div class="mt-6 flex justify-between items-end">
+                                <span class="text-4xl font-black text-blue-400/50">#01</span>
+                                <button class="text-xs border border-blue-400 px-3 py-1 rounded-full hover:bg-white hover:text-blue-600 transition">Ver mais dicas</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            initCharts();
+        }
+
+        function renderProfile() {
+            document.getElementById('main-content').innerHTML = `
+                <div class="max-w-2xl mx-auto space-y-8">
+                    <header class="text-center">
+                        <div class="relative inline-block">
+                            <div class="w-32 h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-slate-100 mx-auto">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Profile">
+                            </div>
+                            <button class="absolute bottom-1 right-1 bg-blue-600 text-white p-2 rounded-full shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            </button>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-800 mt-4">${currentUser.name}</h2>
+                        <p class="text-slate-500">${currentUser.email}</p>
+                    </header>
+
+                    <div class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Informações Pessoais</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" value="${currentUser.name}" class="bg-slate-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Nome">
+                                <input type="email" value="${currentUser.email}" class="bg-slate-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Email">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Preferências de Notificação</label>
+                            <div class="space-y-3">
+                                <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl cursor-pointer">
+                                    <span class="text-sm text-slate-700">Lembretes por Push</span>
+                                    <input type="checkbox" checked class="w-5 h-5 accent-blue-600">
+                                </label>
+                                <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl cursor-pointer">
+                                    <span class="text-sm text-slate-700">Relatórios Mensais no E-mail</span>
+                                    <input type="checkbox" class="w-5 h-5 accent-blue-600">
+                                </label>
+                            </div>
+                        </div>
+
+                        <button class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold hover:bg-slate-900 transition">Salvar Alterações</button>
+                        <p class="text-center text-[10px] text-slate-400">App 100% Gratuito • Versão 1.0.4</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Funcionalidades ---
+        function openModal(type) {
+            const container = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            container.classList.remove('hidden');
+            container.classList.add('flex');
+
+            if (type === 'addMed') {
+                content.innerHTML = `
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-slate-800">Novo Medicamento</h3>
+                            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                        </div>
+                        <div class="space-y-4">
+                            <input type="text" id="new-med-name" placeholder="Nome do Medicamento" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="new-med-dosage" placeholder="Dosagem (ex: 500mg)" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="text" id="new-med-freq" placeholder="Frequência (ex: 8/8h)" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <input type="time" id="new-med-time" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="saveMedication()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition">Salvar Medicamento</button>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'scanner') {
+                content.innerHTML = `
+                    <div class="p-8 text-center">
+                        <div class="w-full aspect-video bg-slate-900 rounded-2xl mb-6 flex flex-col items-center justify-center text-slate-500">
+                            <div class="relative w-48 h-48 border-2 border-dashed border-blue-500 rounded-lg mb-4 overflow-hidden">
+                                <div class="absolute inset-0 bg-blue-500/10 animate-pulse"></div>
+                                <div class="absolute top-0 left-0 w-full h-0.5 bg-blue-500 animate-[scan_2s_infinite]"></div>
+                            </div>
+                            <p class="text-sm font-medium">Aponte para o código de barras da caixa</p>
+                        </div>
+                        <style>
+                            @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+                        </style>
+                        <h3 class="text-xl font-bold mb-2">Escaneando...</h3>
+                        <p class="text-slate-500 mb-6">Estamos identificando o seu medicamento automaticamente.</p>
+                        <button onclick="closeModal()" class="w-full bg-slate-100 text-slate-800 py-3 rounded-xl font-bold">Cancelar</button>
+                    </div>
+                `;
+                // Simula detecção após 3s
+                setTimeout(() => {
+                    if(container.classList.contains('flex')) {
+                        closeModal();
+                        showToast('Medicamento detectado: Ibuprofeno 400mg', 'success');
+                    }
+                }, 3000);
+            }
+        }
+
+        function closeModal() {
+            const container = document.getElementById('modal-container');
+            container.classList.add('hidden');
+            container.classList.remove('flex');
+        }
+
+        function saveMedication() {
+            const name = document.getElementById('new-med-name').value;
+            const dosage = document.getElementById('new-med-dosage').value;
+            const freq = document.getElementById('new-med-freq').value;
+            const time = document.getElementById('new-med-time').value;
+
+            if (name && dosage && freq && time) {
+                const newMed = {
+                    id: Date.now(),
+                    name, dosage, time, frequency: freq,
+                    status: 'pendente', color: 'bg-indigo-500',
+                    interactionAlert: false,
+                    prescriptionExpires: '2024-01-01'
+                };
+                medications.push(newMed);
+                closeModal();
+                showToast('Medicamento adicionado!', 'success');
+                navigate('meds');
+            } else {
+                showToast('Preencha todos os campos', 'error');
+            }
+        }
+
+        function markAsTaken(id) {
+            const med = medications.find(m => m.id === id);
+            if (med) {
+                med.status = 'tomado';
+                history.unshift({
+                    date: new Date().toLocaleDateString('pt-BR'),
+                    med: med.name,
+                    time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                    status: 'Tomado'
+                });
+                showToast(`Dose de ${med.name} confirmada!`, 'success');
+                renderDashboard();
+            }
+        }
+
+        function deleteMed(id) {
+            medications = medications.filter(m => m.id !== id);
+            showToast('Removido com sucesso', 'success');
+            renderMeds();
+        }
+
+        function showToast(msg, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-emerald-600' : 'bg-red-600';
+            toast.className = `${bgColor} text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-300`;
+            toast.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span class="text-sm font-bold">${msg}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 100);
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-10px]', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function initCharts() {
+            const ctx = document.getElementById('adherenceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+                    datasets: [{
+                        label: '% de Doses Tomadas',
+                        data: [85, 90, 88, 92],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, grid: { display: false } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function downloadReport() {
+            const reportData = medications.map(m => `${m.name}, ${m.dosage}, ${m.frequency}, ${m.status}`).join('\n');
+            const blob = new Blob([`RELATÓRIO DE SAÚDE - MEDCARE\n\nMedicamento, Dosagem, Frequência, Status Atual\n${reportData}`], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `relatorio-medcare-${new Date().toLocaleDateString()}.txt`;
+            a.click();
+            showToast('Download iniciado!', 'success');
+        }
+    </script>
+</body>
+</html>
