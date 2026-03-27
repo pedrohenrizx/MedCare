@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedVibe | Gestão de Saúde</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static/font/lucide.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617; /* slate-950 */
+            color: #f8fafc;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #f472b6, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-btn {
+            background: linear-gradient(135deg, #ec4899 0%, #06b6d4 100%);
+            transition: all 0.3s ease;
+        }
+
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(236, 72, 153, 0.4);
+        }
+
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Navigation (Só aparece logado) -->
+    <nav id="main-nav" class="hidden sticky top-0 z-50 glass border-b border-white/5 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg gradient-btn flex items-center justify-center">
+                <i class="lucide-pill text-white text-lg"></i>
+            </div>
+            <span class="text-xl font-bold tracking-tight">Med<span class="gradient-text">Vibe</span></span>
+        </div>
+        <div class="flex gap-6 items-center">
+            <button onclick="showPage('dashboard')" class="hover:text-cyan-400 transition-colors">Dashboard</button>
+            <button onclick="showPage('medications')" class="hover:text-cyan-400 transition-colors">Remédios</button>
+            <button onclick="showPage('profile')" class="hover:text-cyan-400 transition-colors flex items-center gap-2">
+                <div id="nav-user-photo" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-white/10">
+                    <i class="lucide-user text-sm"></i>
+                </div>
+            </button>
+            <button onclick="logout()" class="text-rose-500 hover:text-rose-400"><i class="lucide-log-out"></i></button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-6xl">
+
+        <!-- PAGE: LOGIN -->
+        <section id="page-login" class="page active">
+            <div class="flex flex-col items-center justify-center min-h-[80vh]">
+                <div class="glass p-10 rounded-3xl w-full max-w-md shadow-2xl">
+                    <h2 class="text-3xl font-bold mb-2 text-center">Bem-vindo de volta</h2>
+                    <p class="text-slate-400 text-center mb-8">Cuide da sua saúde com inteligência.</p>
+                    
+                    <form id="login-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">E-mail</label>
+                            <input type="email" id="login-email" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Senha</label>
+                            <input type="password" id="login-password" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 transition-all">
+                        </div>
+                        <button type="submit" class="w-full gradient-btn py-3 rounded-xl font-semibold mt-4">Entrar na Conta</button>
+                    </form>
+                    <p class="mt-6 text-center text-slate-400">Não tem conta? <button onclick="showPage('register')" class="text-cyan-400 font-semibold">Crie agora</button></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: REGISTER -->
+        <section id="page-register" class="page">
+            <div class="flex flex-col items-center justify-center min-h-[80vh]">
+                <div class="glass p-10 rounded-3xl w-full max-w-md shadow-2xl">
+                    <h2 class="text-3xl font-bold mb-2 text-center">Comece Agora</h2>
+                    <p class="text-slate-400 text-center mb-8">Sua jornada para uma vida saudável.</p>
+                    
+                    <form id="register-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Nome Completo</label>
+                            <input type="text" id="reg-name" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">E-mail</label>
+                            <input type="email" id="reg-email" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Senha</label>
+                            <input type="password" id="reg-password" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <button type="submit" class="w-full gradient-btn py-3 rounded-xl font-semibold mt-4">Cadastrar</button>
+                    </form>
+                    <p class="mt-6 text-center text-slate-400">Já tem conta? <button onclick="showPage('login')" class="text-cyan-400 font-semibold">Faça Login</button></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: DASHBOARD -->
+        <section id="page-dashboard" class="page">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Status Card -->
+                <div class="md:col-span-2 glass p-8 rounded-3xl">
+                    <h2 class="text-2xl font-bold mb-6">Olá, <span id="user-name-display" class="gradient-text">Usuário</span>!</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-slate-900/50 p-6 rounded-2xl border border-white/5">
+                            <p class="text-slate-400 text-sm">Aderência Semanal</p>
+                            <h3 class="text-3xl font-bold text-emerald-400">92%</h3>
+                        </div>
+                        <div class="bg-slate-900/50 p-6 rounded-2xl border border-white/5">
+                            <p class="text-slate-400 text-sm">Medicamentos Ativos</p>
+                            <h3 id="med-count-display" class="text-3xl font-bold text-cyan-400">0</h3>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <canvas id="adherenceChart" class="max-h-[250px]"></canvas>
+                    </div>
+                </div>
+
+                <!-- Next Doses -->
+                <div class="glass p-8 rounded-3xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-xl">Próximas Doses</h3>
+                        <i class="lucide-bell text-cyan-400"></i>
+                    </div>
+                    <div id="next-doses-list" class="space-y-4">
+                        <!-- Itens dinâmicos -->
+                        <p class="text-slate-500 text-sm italic">Nenhum agendamento para hoje.</p>
+                    </div>
+                    <button onclick="downloadReport()" class="w-full mt-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center justify-center gap-2 transition-all">
+                        <i class="lucide-download text-sm"></i> Exportar Relatório
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: MEDICATIONS (CRUD) -->
+        <section id="page-medications" class="page">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-3xl font-bold">Meus Medicamentos</h2>
+                    <p class="text-slate-400">Gerencie sua lista de tratamentos ativos.</p>
+                </div>
+                <button onclick="toggleModal('med-modal', true)" class="gradient-btn px-6 py-3 rounded-xl font-bold flex items-center gap-2">
+                    <i class="lucide-plus"></i> Novo
+                </button>
+            </div>
+
+            <div id="med-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cards renderizados aqui -->
+            </div>
+        </section>
+
+        <!-- PAGE: PROFILE -->
+        <section id="page-profile" class="page">
+            <div class="max-w-2xl mx-auto glass rounded-3xl p-10">
+                <div class="flex flex-col items-center mb-10">
+                    <div class="w-32 h-32 rounded-full gradient-btn p-1 mb-4">
+                        <div class="w-full h-full rounded-full bg-slate-950 flex items-center justify-center overflow-hidden">
+                            <i class="lucide-user text-4xl text-slate-600"></i>
+                        </div>
+                    </div>
+                    <h2 id="profile-name" class="text-3xl font-bold">Nome do Usuário</h2>
+                    <p id="profile-email" class="text-slate-400">email@exemplo.com</p>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="p-6 bg-slate-900/50 rounded-2xl border border-white/5">
+                        <h4 class="font-bold mb-4">Preferências</h4>
+                        <div class="flex items-center justify-between">
+                            <span>Notificações por E-mail</span>
+                            <div class="w-12 h-6 bg-cyan-500 rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute right-1 top-1"></div></div>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="w-full py-4 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-2xl font-bold hover:bg-rose-500 hover:text-white transition-all">
+                        Sair da Conta
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: ADD/EDIT MEDICATION -->
+    <div id="med-modal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass w-full max-w-lg rounded-3xl p-8 shadow-2xl relative">
+            <button onclick="toggleModal('med-modal', false)" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="lucide-x"></i></button>
+            <h3 class="text-2xl font-bold mb-6">Cadastrar Medicamento</h3>
+            
+            <form id="med-form" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-sm mb-1">Nome do Remédio</label>
+                        <input type="text" id="med-name" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 focus:border-cyan-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1">Dosagem (ex: 500mg)</label>
+                        <input type="text" id="med-dosage" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 focus:border-cyan-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1">Frequência</label>
+                        <select id="med-frequency" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 focus:border-cyan-500 outline-none">
+                            <option value="8 em 8 horas">8 em 8 horas</option>
+                            <option value="12 em 12 horas">12 em 12 horas</option>
+                            <option value="Uma vez ao dia">Uma vez ao dia</option>
+                            <option value="Em jejum">Em jejum</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm mb-1">Cor do Card</label>
+                        <input type="color" id="med-color" value="#06b6d4" class="w-full h-12 bg-transparent border-none cursor-pointer">
+                    </div>
+                </div>
+                <button type="submit" class="w-full gradient-btn py-4 rounded-xl font-bold mt-4 shadow-lg shadow-cyan-500/20">Salvar Medicamento</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let currentUser = null;
+        let token = localStorage.getItem('medvibe_token');
+        let chartInstance = null;
+
+        // --- Routing ---
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            
+            if (pageId === 'dashboard') loadDashboard();
+            if (pageId === 'medications') loadMedications();
+            if (pageId === 'profile') loadProfile();
+        }
+
+        function toggleModal(id, show) {
+            document.getElementById(id).classList.toggle('hidden', !show);
+        }
+
+        // --- API Handlers ---
+        async function api(endpoint, method = 'GET', body = null) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+
+            const res = await fetch(`/api${endpoint}`, options);
+            if (res.status === 401 || res.status === 403) logout();
+            return res.json();
+        }
+
+        // --- Auth Logic ---
+        document.getElementById('login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            const data = await api('/auth/login', 'POST', { email, password });
+            if (data.token) {
+                token = data.token;
+                currentUser = data.user;
+                localStorage.setItem('medvibe_token', token);
+                initApp();
+            } else {
+                alert(data.message);
+            }
+        };
+
+        document.getElementById('register-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            const data = await api('/auth/register', 'POST', { name, email, password });
+            if (data.id) {
+                alert('Conta criada! Faça login.');
+                showPage('login');
+            } else {
+                alert(data.message);
+            }
+        };
+
+        function logout() {
+            token = null;
+            currentUser = null;
+            localStorage.removeItem('medvibe_token');
+            document.getElementById('main-nav').classList.add('hidden');
+            showPage('login');
+        }
+
+        // --- App Features ---
+        async function loadMedications() {
+            const meds = await api('/medications');
+            const grid = document.getElementById('med-grid');
+            grid.innerHTML = meds.map(m => `
+                <div class="glass p-6 rounded-3xl relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-2 h-full" style="background-color: ${m.color}"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background-color: ${m.color}20">
+                            <i class="lucide-pill" style="color: ${m.color}"></i>
+                        </div>
+                        <button onclick="deleteMed(${m.id})" class="text-slate-600 hover:text-rose-500 transition-colors">
+                            <i class="lucide-trash-2 text-sm"></i>
+                        </button>
+                    </div>
+                    <h4 class="text-xl font-bold">${m.name}</h4>
+                    <p class="text-slate-400 text-sm mb-4">${m.dosage} • ${m.frequency}</p>
+                    <div class="flex gap-2">
+                        <span class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs">Ativo</span>
+                        <span class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs">Uso Contínuo</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('med-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const med = {
+                name: document.getElementById('med-name').value,
+                dosage: document.getElementById('med-dosage').value,
+                frequency: document.getElementById('med-frequency').value,
+                color: document.getElementById('med-color').value
+            };
+            await api('/medications', 'POST', med);
+            toggleModal('med-modal', false);
+            loadMedications();
+            e.target.reset();
+        };
+
+        async function deleteMed(id) {
+            if (confirm('Deseja remover este medicamento?')) {
+                await api(`/medications/${id}`, 'DELETE');
+                loadMedications();
+            }
+        }
+
+        async function loadDashboard() {
+            const meds = await api('/medications');
+            document.getElementById('user-name-display').innerText = currentUser?.name || 'Usuário';
+            document.getElementById('med-count-display').innerText = meds.length;
+            
+            const nextDoses = document.getElementById('next-doses-list');
+            if (meds.length > 0) {
+                nextDoses.innerHTML = meds.slice(0, 3).map(m => `
+                    <div class="flex items-center gap-4 p-3 hover:bg-white/5 rounded-2xl transition-all cursor-pointer">
+                        <div class="w-3 h-3 rounded-full" style="background-color: ${m.color}"></div>
+                        <div>
+                            <p class="font-bold text-sm">${m.name}</p>
+                            <p class="text-xs text-slate-500">Próxima: ${m.frequency}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderChart();
+        }
+
+        function loadProfile() {
+            document.getElementById('profile-name').innerText = currentUser?.name;
+            document.getElementById('profile-email').innerText = currentUser?.email;
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('adherenceChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+                    datasets: [{
+                        label: 'Aderência %',
+                        data: [80, 100, 90, 85, 100, 95, 92],
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false },
+                        x: { grid: { display: false }, border: { display: false } }
+                    }
+                }
+            });
+        }
+
+        async function downloadReport() {
+            const data = await api('/reports/export');
+            const csv = "Nome,Dosagem,Frequencia,Notas\n" + 
+                data.map(m => `"${m.name}","${m.dosage}","${m.frequency}","${m.notes || ''}"`).join("\n");
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'relatorio_medvibe.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function initApp() {
+            document.getElementById('main-nav').classList.remove('hidden');
+            showPage('dashboard');
+        }
+
+        // Check login on start
+        window.onload = async () => {
+            if (token) {
+                // Tenta validar pegando infos do usuário (simulado ou rota /me)
+                currentUser = JSON.parse(atob(token.split('.')[1]));
+                initApp();
+            }
+        };
+    </script>
+</body>
+</html>
