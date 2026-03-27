@@ -1,17 +1,18 @@
 {
-  "name": "medcare-backend",
+  "name": "medvibe-fullstack",
   "version": "1.0.0",
-  "description": "Sistema de Gestão de Medicamentos MedCare",
+  "description": "Sistema de Gestão de Medicamentos Vibrante",
   "main": "src/server.js",
+  "type": "module",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js"
   },
   "dependencies": {
-    "better-sqlite3": "^11.3.0",
+    "express": "^4.18.2",
+    "better-sqlite3": "^9.4.3",
     "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "express": "^4.21.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "cors": "^2.8.5"
   }
 }
